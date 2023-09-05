@@ -8,7 +8,7 @@ def load_config(config_file):
         config = yaml.safe_load(file)
     return config
 
-def generate_roadmap_from_csv(csv_file, config, num_x_ticks=10):
+def generate_roadmap_from_csv(csv_file, config):
     # Read data from the CSV file
     df = pd.read_csv(csv_file)
 
@@ -26,20 +26,15 @@ def generate_roadmap_from_csv(csv_file, config, num_x_ticks=10):
     bar_colors = df['bar_color'] if 'bar_color' in df else config.get("default_bar_color", "skyblue")
 
     plt.figure(figsize=(10, len(df) * 0.5))
-    plt.barh(y_labels, end_dates, left=start_dates, color=bar_colors)
+    plt.barh(y_labels, end_dates - start_dates, left=start_dates, color=bar_colors)
     plt.xlabel("Timeline")
     plt.ylabel("Tasks")
     plt.title("Project Roadmap")
 
-    # Format the date axis
+    # Set the x-axis ticks based on task start dates
     date_format = "%Y-%m-%d"
-    plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter(date_format))
-    
-    # Set the number of x-axis ticks
-    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(num_x_ticks))
-
-    # Rotate date labels for better readability
-    plt.xticks(rotation=45)
+    date_range = pd.date_range(start=min(start_dates), end=max(end_dates), freq='D')
+    plt.xticks(date_range, [date.strftime(date_format) for date in date_range], rotation=45)
 
     # Save the plot as an image
     plt.tight_layout()
@@ -47,5 +42,5 @@ def generate_roadmap_from_csv(csv_file, config, num_x_ticks=10):
 
 if __name__ == "__main__":
     config = load_config("config.yaml")
-    generate_roadmap_from_csv("roadmap.csv", config, num_x_ticks=8)
+    generate_roadmap_from_csv("roadmap.csv", config)
 
